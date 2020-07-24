@@ -9,7 +9,8 @@ spec:
   - port: 27017
     name: mongo
     targetPort: 27017
-  clusterIP: None
+    nodePort: 30017
+  type: NodePort
   selector:
     app: mongo
 ---
