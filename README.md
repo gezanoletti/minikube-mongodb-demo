@@ -60,23 +60,26 @@ Use this section to prove:
 
 Connect to the container running the first "mongod" replica, then use the Mongo Shell to authenticate and add some test data to a database:
 
-    $ kubectl exec -it mongod-0 -c mongod-container bash
+    $ kubectl exec -it mongo-0 -c mongod-container -- bash
     $ mongo
-    > db.getSiblingDB('admin').auth("main_admin", "abc123");
+    > db.getSiblingDB('admin').auth("main_admin", "<MONGODB_ADMIN_PASSWORD>");
     > use test;
     > db.testcoll.insert({a:1});
     > db.testcoll.insert({b:2});
     > db.testcoll.find();
     
-Exit out of the shell and exit out of the first container (“mongod-0”). Then connect to the second container (“mongod-1”), run the Mongo Shell again and see if the previously inserted data is visible to the second "mongod" replica:
+Exit out of the shell and exit out of the first container (“mongo-0”). Then connect to the second container (“mongo-1”), run the Mongo Shell again and see if the previously inserted data is visible to the second "mongo" replica:
 
-    $ kubectl exec -it mongod-1 -c mongod-container bash
+    $ kubectl exec -it mongo-1 -c mongod-container -- bash
     $ mongo
-    > db.getSiblingDB('admin').auth("main_admin", "abc123");
+    > db.getSiblingDB('admin').auth("main_admin", "<MONGODB_ADMIN_PASSWORD>");
+    > rs.slaveOk();
     > db.setSlaveOk(1);
     > use test;
     > db.testcoll.find();
-    
+
+Note: for `rs.slaveOk();` command, check this https://stackoverflow.com/a/17155038/2820586
+
 You should see that the two records inserted via the first replica, are visible to the second replica.
 
 #### 1.3.2 Redeployment Without Data Loss Test
@@ -89,9 +92,10 @@ To see if Persistent Volume Claims really are working, run a script to drop the 
     
 As before, keep re-running the last command above, until you can see that all 3 “mongod” pods and their containers have been successfully started again. Then connect to the first container, run the Mongo Shell and query to see if the data we’d inserted into the old containerised replica-set is still present in the re-instantiated replica set:
 
-    $ kubectl exec -it mongod-0 -c mongod-container bash
+    $ kubectl exec -it mongo-0 -c mongod-container -- bash
     $ mongo
-    > db.getSiblingDB('admin').auth("main_admin", "abc123");
+    > db.getSiblingDB('admin').auth("main_admin", "<MONGODB_ADMIN_PASSWORD>");
+    > rs.slaveOk();
     > use test;
     > db.testcoll.find();
     
